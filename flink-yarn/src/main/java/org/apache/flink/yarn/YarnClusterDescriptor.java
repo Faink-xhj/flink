@@ -772,6 +772,10 @@ public class YarnClusterDescriptor implements ClusterDescriptor<ApplicationId> {
         }
     }
 
+    /**
+     * 1.初始化环境文件系统
+     * 2.配置文件/plugin/user jars/yarn安全配置(jm/tm) 上传、注册;如果是perJob，还需往jobGraph设置文件远程路径
+     */
     private ApplicationReport startAppMaster(
             Configuration configuration,
             String applicationName,
@@ -1125,6 +1129,7 @@ public class YarnClusterDescriptor implements ClusterDescriptor<ApplicationId> {
             }
         }
 
+        //按规范检查堆内存Option
         final JobManagerProcessSpec processSpec =
                 JobManagerProcessUtils.processSpecFromConfigWithNewOptionToInterpretLegacyHeap(
                         flinkConfiguration, JobManagerOptions.TOTAL_PROCESS_MEMORY);

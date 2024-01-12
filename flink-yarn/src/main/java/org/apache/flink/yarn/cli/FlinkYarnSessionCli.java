@@ -577,6 +577,8 @@ public class FlinkYarnSessionCli extends AbstractYarnCli {
         effectiveConfiguration.set(
                 DeploymentOptions.TARGET, YarnDeploymentTarget.SESSION.getName());
 
+        // 这里主要创建好能够描述flink作业在yarn资源队列中的各种对象
+        // 如flink配置/yarn client/jar path 等
         final YarnClusterDescriptor yarnClusterDescriptor =
                 (YarnClusterDescriptor)
                         yarnClusterClientFactory.createClusterDescriptor(effectiveConfiguration);
@@ -601,7 +603,7 @@ public class FlinkYarnSessionCli extends AbstractYarnCli {
                     final ClusterSpecification clusterSpecification =
                             yarnClusterClientFactory.getClusterSpecification(
                                     effectiveConfiguration);
-
+                    //部署集群的job Master到yarn
                     clusterClientProvider =
                             yarnClusterDescriptor.deploySessionCluster(clusterSpecification);
                     ClusterClient<ApplicationId> clusterClient =
@@ -638,9 +640,10 @@ public class FlinkYarnSessionCli extends AbstractYarnCli {
                 if (!effectiveConfiguration.getBoolean(DeploymentOptions.ATTACHED)) {
                     YarnClusterDescriptor.logDetachedClusterInformation(yarnApplicationId, LOG);
                 } else {
+                    //就是个获取线程池对象
                     ScheduledExecutorService scheduledExecutorService =
                             Executors.newSingleThreadScheduledExecutor();
-
+                    //构建yarn application 的状态监听器
                     final YarnApplicationStatusMonitor yarnApplicationStatusMonitor =
                             new YarnApplicationStatusMonitor(
                                     yarnClusterDescriptor.getYarnClient(),
@@ -843,6 +846,7 @@ public class FlinkYarnSessionCli extends AbstractYarnCli {
     }
 
     public static void main(final String[] args) {
+        //这两步都是读取配置目录下的配置文件
         final String configurationDirectory = CliFrontend.getConfigurationDirectoryFromEnv();
 
         final Configuration flinkConfiguration = GlobalConfiguration.loadConfiguration();
@@ -850,15 +854,16 @@ public class FlinkYarnSessionCli extends AbstractYarnCli {
         int retCode;
 
         try {
+            //创建yarnSessionCli时已经记录号所有config信息，被client持有
             final FlinkYarnSessionCli cli =
                     new FlinkYarnSessionCli(
                             flinkConfiguration,
                             configurationDirectory,
                             "",
                             ""); // no prefix for the YARN session
-
+            //hadoop security 相关配置的安装
             SecurityUtils.install(new SecurityConfiguration(flinkConfiguration));
-
+            // 获取到安装完安全配置的上下文信息，并封装使用UserGroupInformation去回调.
             retCode = SecurityUtils.getInstalledContext().runSecured(() -> cli.run(args));
         } catch (CliArgsException e) {
             retCode = handleCliArgsException(e, LOG);

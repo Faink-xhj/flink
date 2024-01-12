@@ -100,6 +100,7 @@ public class YarnJobClusterEntrypoint extends JobClusterEntrypoint {
                         args,
                         new DynamicParametersConfigurationParserFactory(),
                         YarnJobClusterEntrypoint.class);
+        //
         final Configuration configuration =
                 YarnEntrypointUtils.loadConfiguration(workingDirectory, dynamicParameters, env);
 

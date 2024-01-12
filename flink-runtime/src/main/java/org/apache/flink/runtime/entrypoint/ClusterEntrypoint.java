@@ -213,9 +213,12 @@ public abstract class ClusterEntrypoint implements AutoCloseableAsync, FatalErro
         LOG.info("Starting {}.", getClass().getSimpleName());
 
         try {
+            //按照配置内容来决定是否设置安全检查器
             FlinkSecurityManager.setFromConfiguration(configuration);
+            //插件选择，支持外部插件目录读取jar包，持有相应的urls
             PluginManager pluginManager =
                     PluginUtils.createPluginManagerFromRootFolder(configuration);
+            //安装文件系统
             configureFileSystems(configuration, pluginManager);
 
             SecurityContext securityContext = installSecurityContext(configuration);
